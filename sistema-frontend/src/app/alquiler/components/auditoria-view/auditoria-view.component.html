@@ -1,0 +1,30 @@
+<div class="card !p-0 overflow-hidden">
+  <div class="p-6 pb-2">
+    <h2 class="text-lg font-bold text-surface-900 dark:text-white mb-4 pb-2 border-b border-surface-100 dark:border-surface-700">Auditoría del Sistema</h2>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col">Hora</th>
+          <th scope="col">Acción</th>
+          <th scope="col">Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of auditoria">
+          <td class="whitespace-nowrap">{{ item.fecha }}</td>
+          <td class="whitespace-nowrap">{{ item.hora }}</td>
+          <td>
+            <span class="px-2.5 py-1 text-xs font-bold rounded-full bg-surface-100 text-surface-800 dark:bg-surface-700 dark:text-surface-300">{{ item.accion }}</span>
+          </td>
+          <td>{{ item.detalle }}</td>
+        </tr>
+        <tr *ngIf="auditoria.length === 0">
+          <td colspan="4" class="empty-row">No hay registros de auditoría.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

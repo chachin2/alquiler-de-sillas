@@ -1,0 +1,34 @@
+<div class="flex justify-center items-center min-h-screen p-5">
+  <div class="w-full max-w-md bg-white dark:bg-surface-800 rounded-2xl shadow-soft border border-surface-200 dark:border-surface-700 p-8 sm:p-10">
+    <div class="text-center mb-8">
+      <img src="assets/logo.jpg" alt="Logo" class="w-20 h-20 object-cover rounded-full mx-auto mb-4 border-2 border-surface-200 dark:border-surface-700" onerror="this.src=''">
+      <h2 class="text-surface-900 dark:text-white text-2xl font-bold mb-2">Bienvenido</h2>
+      <p class="text-surface-500 dark:text-surface-400 text-sm">Inicie sesión para continuar</p>
+    </div>
+    
+    <form (ngSubmit)="onLogin($event)" class="space-y-5">
+      <div *ngIf="error" class="alert error-alert">{{ error }}</div>
+      
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-surface-400 text-xl pointer-events-none">person</span>
+          <input type="text" id="username" name="username" [(ngModel)]="username" placeholder="Ingrese su usuario" required class="pl-10">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-surface-400 text-xl pointer-events-none">lock</span>
+          <input type="password" id="password" name="password" [(ngModel)]="password" placeholder="Ingrese su contraseña" required class="pl-10">
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn-primary w-full h-12 mt-2" [disabled]="loading">
+        <span *ngIf="!loading">Ingresar</span>
+        <span *ngIf="loading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+      </button>
+    </form>
+  </div>
+</div>

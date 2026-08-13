@@ -1,0 +1,112 @@
+<div class="card">
+  <h2 class="text-lg font-bold text-surface-900 dark:text-white mb-4 pb-2 border-b border-surface-100 dark:border-surface-700">Crear Registro de Uso / Reserva</h2>
+  <form (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="articuloId">Seleccionar Artículo</label>
+      <select id="articuloId" [(ngModel)]="nuevoAlquiler.articuloId" name="articuloId" required>
+        <option value="0" disabled selected>-- Seleccione un artículo --</option>
+        <option *ngFor="let art of inventario" [value]="art.id">
+          {{ art.nombre }} — Disp: {{ obtenerDisponible(art.id!) }} / {{ art.cantidadTotal }}
+        </option>
+      </select>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+      <div class="form-group mb-0">
+        <label for="cliente">Cliente</label>
+        <input type="text" id="cliente" [(ngModel)]="nuevoAlquiler.cliente" name="cliente" placeholder="Nombre completo" required>
+      </div>
+      <div class="form-group mb-0">
+        <label for="cantidadAlquilada">Cantidad Solicitada</label>
+        <input type="number" id="cantidadAlquilada" [(ngModel)]="nuevoAlquiler.cantidadAlquilada" name="cantidadAlquilada" min="1" required>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+      <div class="form-group mb-0">
+        <label for="fechaInicio">Fecha de Salida</label>
+        <input type="date" id="fechaInicio" [(ngModel)]="nuevoAlquiler.fechaInicio" name="fechaInicio" required>
+      </div>
+      <div class="form-group mb-0">
+        <label for="fechaVencimiento">Fecha de Devolución</label>
+        <input type="date" id="fechaVencimiento" [(ngModel)]="nuevoAlquiler.fechaVencimiento" name="fechaVencimiento" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="estado">Estado Inicial</label>
+      <select id="estado" [(ngModel)]="nuevoAlquiler.estado" name="estado">
+        <option value="RESERVADO">Reservado (Agenda Futura)</option>
+        <option value="EN_USO">En Uso (Entregado al cliente)</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary" [disabled]="enviando">
+      <span *ngIf="enviando" class="spinner"></span>
+      {{ enviando ? 'Procesando...' : 'Validar y Agendar' }}
+    </button>
+  </form>
+</div>
+
+<div class="section-divider"></div>
+
+<div class="card table-card !p-0 overflow-hidden">
+  <div class="p-6 pb-2">
+    <h2 class="text-lg font-bold text-surface-900 dark:text-white mb-4 pb-2 border-b border-surface-100 dark:border-surface-700">Avance de la Operación</h2>
+  </div>
+  <div *ngIf="cargando" class="flex flex-col items-center justify-center py-10">
+    <span class="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-3"></span>
+    <p class="text-surface-500 font-medium">Cargando datos...</p>
+  </div>
+  <div *ngIf="!cargando" class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Artículo</th>
+          <th scope="col">Cliente</th>
+          <th scope="col">Cant.</th>
+          <th scope="col">Ocupación</th>
+          <th scope="col">Rango de Fechas</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let alq of agenda">
+          <td><strong>{{ getNombreArticulo(alq.articuloId) }}</strong></td>
+          <td>{{ alq.cliente }}</td>
+          <td>{{ alq.cantidadAlquilada }} uds</td>
+          <td class="w-32">
+            <div class="h-2 w-full bg-surface-100 dark:bg-surface-700 rounded-full overflow-hidden mb-1">
+              <div class="h-full bg-primary-500 rounded-full" [style.width.%]="obtenerPorcentajeOcupado(alq.articuloId)"></div>
+            </div>
+            <small class="text-xs text-surface-500">{{ obtenerDisponible(alq.articuloId) }} disp.</small>
+          </td>
+          <td>{{ alq.fechaInicio }} al {{ alq.fechaVencimiento }}</td>
+          <td>
+            <span class="px-2.5 py-1 text-xs font-bold rounded-full" [ngClass]="{
+              'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': alq.estado === 'RESERVADO',
+              'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300': alq.estado === 'EN_USO',
+              'bg-surface-100 text-surface-800 dark:bg-surface-700 dark:text-surface-300': alq.estado === 'DEVUELTO'
+            }">{{ alq.estado }}</span>
+          </td>
+          <td>
+            <div class="action-buttons-group">
+              <button type="button" *ngIf="alq.estado === 'RESERVADO'" class="btn-action btn-recibo" (click)="cancelarAlquiler.emit(alq)">
+                Cancelar
+              </button>
+              <button type="button" *ngIf="alq.estado === 'RESERVADO'" class="btn-action btn-entregar" (click)="entregar.emit(alq)">
+                Entregar
+              </button>
+              <button type="button" *ngIf="alq.estado === 'EN_USO'" class="btn-action btn-devolver" (click)="devolver.emit(alq)">
+                Devolver
+              </button>
+              <button type="button" class="btn-action btn-recibo" (click)="recibo.emit(alq)">
+                Recibo
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="agenda.length === 0">
+          <td colspan="7" class="empty-row">No hay registros activos en la agenda.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

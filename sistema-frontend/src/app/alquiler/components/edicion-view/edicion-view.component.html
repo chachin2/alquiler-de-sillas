@@ -1,0 +1,135 @@
+<div class="card">
+  <h2 class="text-lg font-bold text-surface-900 dark:text-white mb-6 pb-2 border-b border-surface-100 dark:border-surface-700">🛠️ Centro de Edición de Información</h2>
+  
+  <div class="form-group mb-6">
+    <label for="tipoEdicion">Selecciona el tipo de registro a editar</label>
+    <select id="tipoEdicion" [(ngModel)]="tipoEdicion" name="tipoEdicion">
+      <option value="ARTICULO">Inventario / Artículos</option>
+      <option value="ALQUILER">Alquileres / Reservas</option>
+    </select>
+  </div>
+
+  <!-- SECCIÓN EDITAR ARTÍCULO -->
+  <div *ngIf="tipoEdicion === 'ARTICULO'">
+    <div class="form-group">
+      <label for="selectArticulo">Seleccionar Artículo a Modificar</label>
+      <select id="selectArticulo" [(ngModel)]="articuloSeleccionadoId" (change)="onArticuloSelected()" name="selectArticulo">
+        <option [value]="null" disabled selected>-- Elige un artículo --</option>
+        <option *ngFor="let art of inventario" [value]="art.id">{{ art.nombre }} (Stock: {{ art.cantidadTotal }})</option>
+      </select>
+    </div>
+
+    <form *ngIf="articuloSeleccionadoId" (ngSubmit)="guardarArticulo()" class="mt-5">
+      <div class="form-group">
+        <label for="editArtNombre">Nombre del Artículo</label>
+        <input type="text" id="editArtNombre" [(ngModel)]="articuloEditable.nombre" name="nombre" required>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="form-group mb-0">
+          <label for="editArtStock">Cantidad Total en Stock</label>
+          <input type="number" id="editArtStock" [(ngModel)]="articuloEditable.cantidadTotal" name="cantidadTotal" min="1" required>
+        </div>
+        <div class="form-group mb-0">
+          <label for="editArtTarifa">Tarifa Base (Q)</label>
+          <input type="number" id="editArtTarifa" [(ngModel)]="articuloEditable.tarifa" name="tarifa" min="0" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="editArtFrecuencia">Frecuencia de Tarifa</label>
+        <select id="editArtFrecuencia" [(ngModel)]="articuloEditable.tipoTarifa" name="tipoTarifa">
+          <option value="HORA">Por Hora</option>
+          <option value="DIA">Por Día</option>
+          <option value="SEMANA">Por Semana</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="editArtFoto">Subir/Reemplazar Foto del Artículo</label>
+        <input id="editArtFoto" type="file" accept="image/*" (change)="onFileSelected($event)" class="file-input">
+        <img [src]="articuloEditable.fotoUrl" *ngIf="articuloEditable.fotoUrl" class="w-24 h-24 object-cover rounded-lg mt-3 block border border-surface-200 dark:border-surface-700" alt="Foto del artículo">
+      </div>
+
+      <div class="action-buttons-group mt-6">
+        <button type="submit" class="btn btn-primary" [disabled]="enviando">
+          Guardar Cambios
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="resetArticuloForm()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-action btn-devolver ml-auto" (click)="borrarArticulo()">
+          Eliminar Artículo
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- SECCIÓN EDITAR ALQUILER -->
+  <div *ngIf="tipoEdicion === 'ALQUILER'">
+    <div class="form-group">
+      <label for="selectAlquiler">Seleccionar Alquiler / Reserva a Modificar</label>
+      <select id="selectAlquiler" [(ngModel)]="alquilerSeleccionadoId" (change)="onAlquilerSelected()" name="selectAlquiler">
+        <option [value]="null" disabled selected>-- Elige un alquiler --</option>
+        <option *ngFor="let alq of agenda" [value]="alq.id">
+          {{ alq.cliente }} — {{ getNombreArticulo(alq.articuloId) }} ({{ alq.estado }})
+        </option>
+      </select>
+    </div>
+
+    <form *ngIf="alquilerSeleccionadoId" (ngSubmit)="guardarAlquiler()" class="mt-5">
+      <div class="form-group">
+        <label for="editAlqCliente">Nombre del Cliente</label>
+        <input type="text" id="editAlqCliente" [(ngModel)]="alquilerEditable.cliente" name="cliente" required>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="form-group mb-0">
+          <label for="editAlqArticulo">Artículo Rentado</label>
+          <select id="editAlqArticulo" [(ngModel)]="alquilerEditable.articuloId" name="articuloId" required>
+            <option *ngFor="let art of inventario" [value]="art.id">{{ art.nombre }}</option>
+          </select>
+        </div>
+        <div class="form-group mb-0">
+          <label for="editAlqCantidad">Cantidad Reservada/Rentada</label>
+          <input type="number" id="editAlqCantidad" [(ngModel)]="alquilerEditable.cantidadAlquilada" name="cantidadAlquilada" min="1" required>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="form-group mb-0">
+          <label for="editAlqSalida">Fecha de Salida</label>
+          <input type="date" id="editAlqSalida" [(ngModel)]="alquilerEditable.fechaInicio" name="fechaInicio" required>
+        </div>
+        <div class="form-group mb-0">
+          <label for="editAlqDevolucion">Fecha de Devolución (Pactada)</label>
+          <input type="date" id="editAlqDevolucion" [(ngModel)]="alquilerEditable.fechaVencimiento" name="fechaVencimiento" required>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="form-group mb-0">
+          <label for="editAlqEstado">Estado de Operación</label>
+          <select id="editAlqEstado" [(ngModel)]="alquilerEditable.estado" name="estado" required>
+            <option value="RESERVADO">Reservado</option>
+            <option value="EN_USO">En Uso</option>
+            <option value="DEVUELTO">Devuelto</option>
+          </select>
+        </div>
+        <div *ngIf="alquilerEditable.estado === 'DEVUELTO'" class="form-group mb-0">
+          <label for="editAlqDevolucionReal">Fecha de Devolución Real</label>
+          <input type="date" id="editAlqDevolucionReal" [(ngModel)]="alquilerEditable.fechaDevolucion" name="fechaDevolucion">
+        </div>
+      </div>
+
+      <div class="action-buttons-group mt-6">
+        <button type="submit" class="btn btn-primary" [disabled]="enviando">
+          Guardar Cambios
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="resetAlquilerForm()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,92 @@
+<h2 class="text-lg font-bold text-surface-900 dark:text-white mb-4 pb-2 border-b border-surface-100 dark:border-surface-700">{{ articuloEditando ? 'Editar Artículo: ' + articuloEditando.nombre : 'Registrar Disponibilidad Inicial' }}</h2>
+<form (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="nombreArticulo">Nombre del Artículo</label>
+    <input type="text" id="nombreArticulo" [(ngModel)]="nuevoArticulo.nombre" name="nombre" placeholder="Ej. Sillas Tiffany" required>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+    <div class="form-group mb-0">
+      <label for="cantidadTotal">Cantidad Total</label>
+      <input type="number" id="cantidadTotal" [(ngModel)]="nuevoArticulo.cantidadTotal" name="cantidadTotal" min="1" required>
+    </div>
+    <div class="form-group mb-0">
+      <label for="tarifa">Tarifa Base (Q)</label>
+      <input type="number" id="tarifa" [(ngModel)]="nuevoArticulo.tarifa" name="tarifa" min="0" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="fotoUrl">URL de la Foto</label>
+    <input type="text" id="fotoUrl" [(ngModel)]="nuevoArticulo.fotoUrl" name="fotoUrl" placeholder="https://ejemplo.com/foto.jpg">
+  </div>
+  <div class="form-group">
+    <label for="tipoTarifa">Frecuencia de Tarifa</label>
+    <select id="tipoTarifa" [(ngModel)]="nuevoArticulo.tipoTarifa" name="tipoTarifa">
+      <option value="HORA">Por Hora</option>
+      <option value="DIA">Por Día</option>
+      <option value="SEMANA">Por Semana</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="fotoUpload">Subir Foto del Artículo</label>
+    <input id="fotoUpload" type="file" accept="image/*" (change)="onFileSelected($event)" class="file-input">
+    <img [src]="nuevoArticulo.fotoUrl" *ngIf="nuevoArticulo.fotoUrl" class="w-20 h-20 object-cover rounded-lg mt-3 block border border-surface-200 dark:border-surface-700" alt="Vista previa de foto">
+  </div>
+  <div class="action-buttons-group">
+    <button type="submit" class="btn btn-primary" [disabled]="enviando">
+      <span *ngIf="enviando" class="spinner"></span>
+      {{ enviando ? 'Guardando...' : (articuloEditando ? 'Guardar Cambios' : 'Guardar en Inventario') }}
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()" *ngIf="articuloEditando" [disabled]="enviando">
+      Cancelar
+    </button>
+  </div>
+</form>
+
+<div class="section-divider"></div>
+
+<h2 class="text-lg font-bold text-surface-900 dark:text-white mb-4 pb-2 border-b border-surface-100 dark:border-surface-700">Historial de Productos</h2>
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Foto</th>
+        <th scope="col">ID</th>
+        <th scope="col">Nombre</th>
+        <th scope="col">Cantidad</th>
+        <th scope="col">Tarifa</th>
+        <th scope="col">Tipo</th>
+        <th scope="col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let art of inventario">
+        <td><img [src]="art.fotoUrl" *ngIf="art.fotoUrl" alt="Foto de artículo" class="w-10 h-10 object-cover rounded"></td>
+        <td>{{ art.id }}</td>
+        <td><strong>{{ art.nombre }}</strong></td>
+        <td>{{ art.cantidadTotal }} uds</td>
+        <td>Q{{ art.tarifa }}</td>
+        <td>{{ art.tipoTarifa }}</td>
+        <td>
+          <div class="action-buttons-group">
+            <button type="button" class="btn-action btn-recibo" (click)="iniciarEdicion(art)" [disabled]="enviando">
+              Editar
+            </button>
+            <button type="button" class="btn-action btn-entregar" (click)="toggleSumarStock(art.id ?? 0)" [disabled]="enviando">
+              + Stock
+            </button>
+            <button type="button" class="btn-action btn-devolver" (click)="eliminar(art.id)" [disabled]="enviando">
+              Eliminar
+            </button>
+          </div>
+          <div *ngIf="sumandoStock[art.id ?? 0]" class="flex gap-2 mt-2">
+            <input type="number" min="1" [(ngModel)]="cantidadSumar[art.id ?? 0]" name="sumarQty{{art.id}}" placeholder="Cantidad" class="w-20 px-2 py-1 text-sm border border-surface-300 rounded dark:bg-surface-700 dark:border-surface-600 dark:text-white">
+            <button type="button" class="btn-action btn-entregar" (click)="confirmarSumarStock(art)" [disabled]="enviando">Añadir</button>
+          </div>
+        </td>
+      </tr>
+      <tr *ngIf="inventario.length === 0">
+        <td colspan="6" class="empty-row">No hay artículos registrados.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
