@@ -1,0 +1,5 @@
+com\example\alquiler\controller\InventarioAlquilerController.class
+com\example\alquiler\model\Articulo.class
+com\example\alquiler\service\SistemaService.class
+com\example\alquiler\model\Alquiler.class
+com\example\alquiler\SistemaApplication.class
